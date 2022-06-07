@@ -1,3 +1,8 @@
+mod token;
+mod tokenizer;
+
+use tokenizer::Tokenizer;
+
 fn main() {
-    println!("Hello, world!");
+    let _tokenizer = Tokenizer::new(String::from(""));
 }
