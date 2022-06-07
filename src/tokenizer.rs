@@ -2,7 +2,8 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::token::{
-    ArchimedesSpan,
+    Span,
+    NumericConstant,
     Token
 };
 
@@ -93,20 +94,91 @@ impl Tokenizer {
         }
     }
 
-    fn read_next_token(&self) -> Token {
+    fn tokenize_number(&self) -> Token {
+        Token::Number(
+            Span { file_id: 0, start: 0, end: 0 },
+            NumericConstant::Integer(0)
+        )
+    }
+
+    fn tokenize_names(&self) -> Token {
+        Token::IdentName(
+            Span { file_id: 0, start: 0, end: 0 },
+            String::new()
+        )
+    }
+
+    pub fn read_next_token(&mut self) -> Token {
+        if self.at_eof() {
+            return Token::EOF(
+                Span {
+                    file_id: 0,
+                    start: self.cursor,
+                    end: self.cursor + 1 
+                }
+            );
+        }
+
         self.consume_useless_bytes();
 
-        return match self.byte_at(cursor) {
+        return match self.byte_at(self.cursor) {
+            b'\n' => Token::EOL(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
             b'0' | b'1' | b'2' |
             b'3' | b'4' | b'5' |
             b'6' | b'7' | b'8' |
-            b'9' | => return tokenize_number(),
+            b'9' => self.tokenize_number(),
 
-            _ => Token::Trash(ArchimedesSpan {
-                file_id: 0,
-                start: self.cursor,
-                end: self.cursor + 1
-            })
+            b'~' => Token::Tilde(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            b'!' => self.tokenize_bang_variations(),
+
+            b'#' => Token::Hash(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            b'$' => Token::Dollar(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            b'%' => self.tokenize_percent_variations(),
+
+            b'^' => self.tokenize_caret_variations(),
+
+            b'&' => self.tokenize_ampersand_variations(),
+
+            b'*' => self.tokenize_star_variations(),
+
+            b'(' => Token::LParam(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+            b')' => Token::RParam(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            b'-' => self.tokenize_minus_variations(),
+            b'+' => self.tokenize_plus_variations(),
+
+            b'=' => self.tokenize_equals_variations(),
+
+            b'[' => Token::LSquare(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+            b'[' => Token::RSquare(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            b'|' => self.tokenize_pipe_variations(),
+
+            b'{' => Token::LCurly(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+            b'}' => Token::RCurly(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            b';' => Token::Semicolon(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            b':' => self.tokenize_colon_variations(),
+
+            b'\'' => self.try_tokenize_char_literal(),
+            b'"' => self.try_tokenize_string_literal(),
+
+            b',' => Token::Comma(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+            b'.' => Token::Dot(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            b'/' => self.tokenize_slash_variations(),
+
+            b'<' => Token::LAngle(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+            b'>' => Token::RAngle(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            b'?' => Token::QuestionMark(Span { file_id: 0, start: self.cursor, end: self.cursor + 1 }),
+
+            _ => self.tokenize_names(),
         }
     }
 }

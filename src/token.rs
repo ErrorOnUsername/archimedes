@@ -1,80 +1,97 @@
-pub struct ArchimedesSpan {
+pub struct Span {
     pub file_id: u64,
     pub start: usize,
     pub end: usize,
 }
 
+pub enum NumericConstant {
+    Integer(i128),
+    FloatingPoint(f64),
+}
+
 pub enum Token {
-    Trash(ArchimedesSpan),
+    Trash(Span),
 
-    EOL(ArchimedesSpan), // End-of-line
-    EOF(ArchimedesSpan), // End-of-file
+    EOL(Span), // End-of-line
+    EOF(Span), // End-of-file
 
-    IdentName(ArchimedesSpan, String),
+    IdentName(Span, String),
 
-    StringLiteral(ArchimedesSpan, String), // ""
-    CharLiteral(ArchimedesSpan, u8),       // ''
+    StringLiteral(Span, String), // ""
+    CharLiteral(Span, u8),       // ''
+    Number(Span, NumericConstant),
 
-    LParen(ArchimedesSpan),          // (
-    RParen(ArchimedesSpan),          // )
-    LCurly(ArchimedesSpan),          // {
-    RCurly(ArchimedesSpan),          // }
-    LSquare(ArchimedesSpan),         // [
-    RSquare(ArchimedesSpan),         // ]
-    LAngle(ArchimedesSpan),          // <
-    RAngle(ArchimedesSpan),          // >
-    Assign(ArchimedesSpan),          // =
-    Colon(ArchimedesSpan),           // :
-    ColonAssign(ArchimedesSpan),     // :=
-    DoubleColon(ArchimedesSpan),     // ::
-    Semicolon(ArchimedesSpan),       // ;
-    ThinArrow(ArchimedesSpan),       // ->
-    ThiccArrow(ArchimedesSpan),      // =>
-    Hash(ArchimedesSpan),            // #
-    Bang(ArchimedesSpan),            // !
-    Ampersand(ArchimedesSpan),       // &
-    DoubleAmpersand(ArchimedesSpan), // &&
-    Pipe(ArchimedesSpan),            // |
-    DoublePipe(ArchimedesSpan),      // ||
-    Caret(ArchimedesSpan),           // ^
-    DoubleCaret(ArchimedesSpan),     // ^^
+    LParen(Span),          // (
+    RParen(Span),          // )
+    LCurly(Span),          // {
+    RCurly(Span),          // }
+    LSquare(Span),         // [
+    RSquare(Span),         // ]
+    LAngle(Span),          // <
+    RAngle(Span),          // >
+    Assign(Span),          // =
+    Colon(Span),           // :
+    ColonAssign(Span),     // :=
+    DoubleColon(Span),     // ::
+    Semicolon(Span),       // ;
+    ThinArrow(Span),       // ->
+    ThiccArrow(Span),      // =>
+    Hash(Span),            // #
+    Bang(Span),            // !
+    Ampersand(Span),       // &
+    AmpersandAssign(Span), // &=
+    DoubleAmpersand(Span), // &&
+    Pipe(Span),            // |
+    PipeAssign(Span),      // |=
+    DoublePipe(Span),      // ||
+    Caret(Span),           // ^
+    CaretAssign(Span),     // ^=
+    DoubleCaret(Span),     // ^^
 
-    RShift(ArchimedesSpan),       // >>
-    RShiftAssign(ArchimedesSpan), // >>=
-    LShift(ArchimedesSpan),       // <<
-    LShiftAssign(ArchimedesSpan), // <<=
-    LEQ(ArchimedesSpan),          // <=
-    GEQ(ArchimedesSpan),          // >=
-    EQ(ArchimedesSpan),           // ==
-    NEQ(ArchimedesSpan),          // !=
+    RShift(Span),       // >>
+    RShiftAssign(Span), // >>=
+    LShift(Span),       // <<
+    LShiftAssign(Span), // <<=
+    LEQ(Span),          // <=
+    GEQ(Span),          // >=
+    EQ(Span),           // ==
+    NEQ(Span),          // !=
 
-    KeywordImport(ArchimedesSpan),
-    KeywordDecl(ArchimedesSpan),
-    KeywordLet(ArchimedesSpan),
-    KeywordMut(ArchimedesSpan),
+    Star(Span),               // *
+    StarAssign(Span),         // *=
+    ForwardSlash(Span),       // /
+    ForwardSlashAssign(Span), // /=
+    Percent(Span),            // %
+    PercentAssign(Span),      // %=
 
-    KeywordStruct(ArchimedesSpan),
-    KetwordEnum(ArchimedesSpan),
+    KeywordImport(Span),
+    KeywordDecl(Span),
+    KeywordLet(Span),
+    KeywordMut(Span),
 
-    KeywordMatch(ArchimedesSpan),
-    KeywordIf(ArchimedesSpan),
-    KeywordElse(ArchimedesSpan),
-    KeywordFor(ArchimedesSpan),
-    KeywordWhile(ArchimedesSpan),
-    KeywordContinue(ArchimedesSpan),
-    KeywordBreak(ArchimedesSpan),
+    KeywordStruct(Span),
+    KetwordEnum(Span),
 
-    TypeLiteralNothing(ArchimedesSpan),
-    TypeLiteralBool(ArchimedesSpan),
-    TypeLiteralChar(ArchimedesSpan),
-    TypeLiteralU8(ArchimedesSpan),
-    TypeLiteralI8(ArchimedesSpan),
-    TypeLiteralU16(ArchimedesSpan),
-    TypeLiteralI16(ArchimedesSpan),
-    TypeLiteralU32(ArchimedesSpan),
-    TypeLiteralI32(ArchimedesSpan),
-    TypeLiteralU64(ArchimedesSpan),
-    TypeLiteralI64(ArchimedesSpan),
-    TypeLiteralF32(ArchimedesSpan),
-    TypeLiteralF64(ArchimedesSpan),
+    KeywordMatch(Span),
+    KeywordIf(Span),
+    KeywordElse(Span),
+    KeywordFor(Span),
+    KeywordWhile(Span),
+    KeywordContinue(Span),
+    KeywordBreak(Span),
+    KeywordReturn(Span),
+
+    TypeLiteralNothing(Span),
+    TypeLiteralBool(Span),
+    TypeLiteralChar(Span),
+    TypeLiteralU8(Span),
+    TypeLiteralI8(Span),
+    TypeLiteralU16(Span),
+    TypeLiteralI16(Span),
+    TypeLiteralU32(Span),
+    TypeLiteralI32(Span),
+    TypeLiteralU64(Span),
+    TypeLiteralI64(Span),
+    TypeLiteralF32(Span),
+    TypeLiteralF64(Span),
 }
