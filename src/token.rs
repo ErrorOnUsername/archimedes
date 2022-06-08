@@ -1,19 +1,47 @@
+#[derive(PartialEq, Debug)]
 pub struct Span {
     pub file_id: u64,
     pub start: usize,
     pub end: usize,
 }
 
-pub enum NumericConstant {
-    Integer(i128),
-    FloatingPoint(f64),
+#[derive(PartialEq, Debug)]
+pub enum NumberLiteralFormat {
+    Binary,
+    Octal,
+    Decimal,
+    Hexadecimal
 }
 
+#[derive(PartialEq, Debug)]
+pub enum NumericConstant {
+    Integer(String, NumberLiteralFormat),
+    FloatingPoint(String),
+}
+
+#[derive(PartialEq, Debug)]
+pub enum PrimitiveType {
+    Nothing,
+    Bool,
+    Char,
+    U8,
+    I8,
+    U16,
+    I16,
+    U32,
+    I32,
+    U64,
+    I64,
+    F32,
+    F64
+}
+
+#[derive(PartialEq, Debug)]
 pub enum Token {
     Trash(Span),
 
     EOL(Span), // End-of-line
-    EOF(Span), // End-of-file
+    EOF,       // End-of-file
 
     IdentName(Span, String),
 
@@ -36,8 +64,15 @@ pub enum Token {
     Semicolon(Span),       // ;
     ThinArrow(Span),       // ->
     ThiccArrow(Span),      // =>
+    Dollar(Span),          // $
+    Comma(Span),           // ,
+    Dot(Span),             // .
+    DotDot(Span),          // ..
     Hash(Span),            // #
     Bang(Span),            // !
+    QuestionMark(Span),    // ?
+    Tilde(Span),           // ~
+    TildeAssign(Span),     // ~=
     Ampersand(Span),       // &
     AmpersandAssign(Span), // &=
     DoubleAmpersand(Span), // &&
@@ -57,12 +92,18 @@ pub enum Token {
     EQ(Span),           // ==
     NEQ(Span),          // !=
 
-    Star(Span),               // *
-    StarAssign(Span),         // *=
-    ForwardSlash(Span),       // /
-    ForwardSlashAssign(Span), // /=
-    Percent(Span),            // %
-    PercentAssign(Span),      // %=
+    Minus(Span),         // -
+    MinusMinus(Span),    // --
+    MinusAssign(Span),   // -=
+    Plus(Span),          // +
+    PlusPlus(Span),      // ++
+    PlusAssign(Span),    // +=
+    Star(Span),          // *
+    StarAssign(Span),    // *=
+    Slash(Span),         // /
+    SlashAssign(Span),   // /=
+    Percent(Span),       // %
+    PercentAssign(Span), // %=
 
     KeywordImport(Span),
     KeywordDecl(Span),
@@ -70,7 +111,7 @@ pub enum Token {
     KeywordMut(Span),
 
     KeywordStruct(Span),
-    KetwordEnum(Span),
+    KeywordEnum(Span),
 
     KeywordMatch(Span),
     KeywordIf(Span),
@@ -81,17 +122,5 @@ pub enum Token {
     KeywordBreak(Span),
     KeywordReturn(Span),
 
-    TypeLiteralNothing(Span),
-    TypeLiteralBool(Span),
-    TypeLiteralChar(Span),
-    TypeLiteralU8(Span),
-    TypeLiteralI8(Span),
-    TypeLiteralU16(Span),
-    TypeLiteralI16(Span),
-    TypeLiteralU32(Span),
-    TypeLiteralI32(Span),
-    TypeLiteralU64(Span),
-    TypeLiteralI64(Span),
-    TypeLiteralF32(Span),
-    TypeLiteralF64(Span),
+    BuiltinType(Span, PrimitiveType),
 }
