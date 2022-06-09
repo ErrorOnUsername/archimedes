@@ -3,7 +3,8 @@ use std::io::Read;
 
 use crate::token::{
     Span,
-    NumberLiteralFormat,
+    IntegerLiteralFormat,
+    FloatingPointLiteralFormat,
     NumericConstant,
     PrimitiveType,
     Token
@@ -386,11 +387,73 @@ impl Tokenizer {
     }
 
     fn tokenize_char_literal(&mut self) -> Token {
-        Token::Trash(Span { file_id: 0, start: 0, end: 0})
+        let start = self.cursor;
+        let end: usize;
+        let mut chr: u8;
+
+        if !self.is_eof(self.cursor + 1) {
+            self.cursor += 1;
+            chr = self.byte_at(self.cursor);
+
+            if !self.is_eof(self.cursor + 1) && chr == b'\\' {
+                self.cursor += 1;
+                chr = self.byte_at(self.cursor);
+            }
+
+            if !self.is_eof(self.cursor + 1) && self.byte_at(self.cursor + 1) == b'\'' {
+                self.cursor += 1;
+                end = self.cursor;
+            } else {
+                // FIXME: Propagate error rather that just freaking out
+                panic!("Unterminated char literal at cursor: {}!", self.cursor);
+            }
+        } else {
+            // FIXME: Propagate error rather that just freaking out
+            panic!("Unterminated char literal at cursor: {}!", self.cursor);
+        }
+
+        Token::CharLiteral(Span { file_id: 0, start, end }, chr)
     }
 
     fn tokenize_string_literal(&mut self) -> Token {
-        Token::Trash(Span { file_id: 0, start: 0, end: 0})
+        let mut res_str = String::new();
+
+        let start = self.cursor + 1;
+        let end: usize;
+
+        if !self.is_eof(self.cursor + 1) {
+            self.cursor += 1;
+
+            while self.byte_at(self.cursor) != b'"' {
+                if self.byte_at(self.cursor) == b'\\' {
+                    self.cursor += 1;
+
+                    if !self.at_eof() && self.byte_at(self.cursor) == b'"' {
+                        self.cursor += 1;
+
+                        res_str.push('"');
+                    }
+
+                    continue;
+                }
+
+                res_str.push(self.byte_at(self.cursor) as char);
+                self.cursor += 1;
+
+                if self.at_eof() {
+                    // FIXME: Propagate error rather that just freaking out
+                    panic!("Unterminated string literal at cursor: {}!", self.cursor);
+                }
+            }
+
+            end = self.cursor;
+            self.cursor += 1;
+        } else {
+            // FIXME: Propagate error rather that just freaking out
+            panic!("Unterminated string literal at cursor: {}!", self.cursor);
+        }
+
+        Token::StringLiteral(Span { file_id: 0, start, end }, res_str)
     }
 
     fn tokenize_dot_variations(&mut self) -> Token {
@@ -462,23 +525,28 @@ impl Tokenizer {
     }
 
     fn tokenize_number(&mut self) -> Token {
-        let mut base = NumberLiteralFormat::Decimal;
+        // TODO: Implement literal type suffixes
+
+        let start = self.cursor;
+        let mut int_fmt = IntegerLiteralFormat::Decimal;
+        let mut is_float = false;
+        let mut float_fmt = FloatingPointLiteralFormat::Standard;
         let mut num_str = String::new();
 
         // Parse base prefix (if present)
         if self.byte_at(self.cursor) == b'0' {
             if !self.is_eof(self.cursor + 1) && self.byte_at(self.cursor + 1) == b'x' {
                 self.cursor += 2;
-                base = NumberLiteralFormat::Hexadecimal;
+                int_fmt = IntegerLiteralFormat::Hexadecimal;
             } else if !self.is_eof(self.cursor + 1) && self.byte_at(self.cursor + 1) == b'o' {
                 self.cursor += 2;
-                base = NumberLiteralFormat::Octal;
+                int_fmt = IntegerLiteralFormat::Octal;
             } else if !self.is_eof(self.cursor + 1) && self.byte_at(self.cursor + 1) == b'b' {
                 self.cursor += 2;
-                base = NumberLiteralFormat::Binary;
+                int_fmt = IntegerLiteralFormat::Binary;
             } else if !self.is_eof(self.cursor + 1) && self.byte_at(self.cursor + 1) != b'.' {
                 // FIXME: Propagate error rather that just freaking out
-                panic!("Leading zero with no known base prefix at cursor: {}", self.cursor);
+                panic!("Invalid Syntax! Leading zero with no known base prefix at cursor: {}", self.cursor);
             }
         }
 
@@ -489,7 +557,13 @@ impl Tokenizer {
             }
 
             if self.byte_at(self.cursor) == b'.' {
-                panic!("We can't handle floating points yet!");
+                is_float = true;
+                if float_fmt == FloatingPointLiteralFormat::ENotation {
+                    panic!("Invalid Syntax! Floating point not allowed after E in e-notation!");
+                }
+            } else if self.byte_at(self.cursor) == b'e' || self.byte_at(self.cursor) == b'E' {
+                is_float = true;
+                float_fmt = FloatingPointLiteralFormat::ENotation;
             }
 
             num_str.push(self.byte_at(self.cursor) as char);
@@ -498,8 +572,8 @@ impl Tokenizer {
         }
 
         Token::Number(
-            Span { file_id: 0, start: self.cursor - num_str.len(), end: self.cursor },
-            NumericConstant::Integer(num_str, base)
+            Span { file_id: 0, start, end: self.cursor },
+            if is_float { NumericConstant::FloatingPoint(num_str, float_fmt) } else { NumericConstant::Integer(num_str, int_fmt) }
         )
     }
 

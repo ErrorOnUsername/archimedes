@@ -1,4 +1,4 @@
 decl main : ()
 {
-	some_proc(3);
+	println("Hello, {:s}", "\"friend\"");
 }

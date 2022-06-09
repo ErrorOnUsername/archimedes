@@ -11,6 +11,7 @@ fn main() {
 
     while token != Token::EOF {
         println!("{:?}", token);
+
         token = tokenizer.read_next_token();
     }
 }

@@ -6,7 +6,7 @@ pub struct Span {
 }
 
 #[derive(PartialEq, Debug)]
-pub enum NumberLiteralFormat {
+pub enum IntegerLiteralFormat {
     Binary,
     Octal,
     Decimal,
@@ -14,9 +14,15 @@ pub enum NumberLiteralFormat {
 }
 
 #[derive(PartialEq, Debug)]
+pub enum FloatingPointLiteralFormat {
+    Standard,
+    ENotation
+}
+
+#[derive(PartialEq, Debug)]
 pub enum NumericConstant {
-    Integer(String, NumberLiteralFormat),
-    FloatingPoint(String),
+    Integer(String, IntegerLiteralFormat),
+    FloatingPoint(String, FloatingPointLiteralFormat),
 }
 
 #[derive(PartialEq, Debug)]
@@ -38,8 +44,6 @@ pub enum PrimitiveType {
 
 #[derive(PartialEq, Debug)]
 pub enum Token {
-    Trash(Span),
-
     EOL(Span), // End-of-line
     EOF,       // End-of-file
 
