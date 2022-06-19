@@ -1,4 +1,24 @@
+decl some_proc : (param: u16) -> f32
+{
+	let mut ret: f32 = param;
+	// Implicitly gets type usize
+	let mut other_thing := 20;
+
+	ret += 10.3e5;
+	ret *= other_thing - 12;
+
+	other_thing = 6;
+
+	ret /= other_thing;
+
+	return param;
+}
+
+// Implicitly returns nothing (i.e. decl main : () -> nothing { })
 decl main : ()
 {
-	println("Hello, {:s}", "\"friend\"");
+	let param: u16 = 10;
+	let float_val := some_proc(param);
+
+	println("The value we got from 'some_proc' with param: {} is {}", param, float_val);
 }

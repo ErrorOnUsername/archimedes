@@ -30,6 +30,7 @@ fn is_valid_number_literal_char(c: u8) -> bool {
     (c >= b'0' && c <= b'9') || (c >= b'a' && c <= b'f')
                              || (c >= b'A' && c >= b'F')
                              || (c == NUMBER_LITERAL_SEPERATOR)
+                             || (c == b'.')
 }
 
 impl Tokenizer {
@@ -45,6 +46,10 @@ impl Tokenizer {
             line: 0,
             in_block_comment: false
         }
+    }
+
+    pub fn dump_file_contents(&self) {
+        println!("{}", self.current_file_contents);
     }
 
     fn byte_at(&self, idx: usize) -> u8 {
@@ -65,51 +70,34 @@ impl Tokenizer {
                        || self.byte_at(self.cursor) == b'\r')
     }
 
-    fn is_comment_consumed(&mut self) -> bool {
-        if !self.at_eof() && self.byte_at(self.cursor) == b'/' {
-            if !self.is_eof(self.cursor + 1) && self.byte_at(self.cursor + 1) == b'/' {
-                // We're looking at a line comment rn
-
-                loop {
-                    self.cursor += 1;
-                    if !self.at_eof() && self.byte_at(self.cursor) == b'\n' {
-                        self.line += 1;
-                        self.cursor += 1;
-                        return true;
-                    }
-                }
-            } else if self.in_block_comment || (!self.is_eof(self.cursor + 1) && self.byte_at(self.cursor + 1) == b'*') {
-                // We're looking at a block comment rn
-                self.in_block_comment = true;
-
-                // Increment once beforehand so we don't accidentally read
-                // the first '*' as the closing '*'
+    fn consume_useless_bytes(&mut self) {
+        while self.is_current_whitespace() || self.byte_at(self.cursor) == b'/' || self.in_block_comment {
+            if self.in_block_comment || (!self.at_eof() && self.byte_at(self.cursor) == b'/') {
                 self.cursor += 1;
-                loop {
-                    self.cursor += 1;
 
-                    if !self.at_eof() && self.byte_at(self.cursor) == b'\n' {
-                        return false;
+                if !self.at_eof() && self.byte_at(self.cursor) == b'/' {
+                    while !self.at_eof() && self.byte_at(self.cursor) != b'\n' {
+                        self.cursor += 1;
                     }
+                } else if self.in_block_comment || (!self.at_eof() && self.byte_at(self.cursor) == b'*') {
+                    self.cursor += 1;
+                    self.in_block_comment = true;
 
-                    if !self.at_eof() && self.byte_at(self.cursor) == b'*' {
-                        if !self.is_eof(self.cursor + 1) && self.byte_at(self.cursor + 1) == b'/' {
-                            self.cursor += 2;
+                    loop {
+                        if self.at_eof() { panic!("Unterminated block comment!"); }
+                        if self.byte_at(self.cursor) == b'\n' { break; }
+
+                        if self.byte_at(self.cursor) == b'/' && self.byte_at(self.cursor - 1) == b'*' {
+                            self.cursor += 1;
                             self.in_block_comment = false;
-                            return true;
+                            break;
                         }
 
                         self.cursor += 1;
                     }
                 }
             }
-        }
 
-        false
-    }
-
-    fn consume_useless_bytes(&mut self) {
-        while self.is_current_whitespace() && !self.is_comment_consumed() {
             self.cursor += 1;
         }
     }
@@ -124,6 +112,7 @@ impl Tokenizer {
         return match self.byte_at(self.cursor) {
             b'\n' => {
                 self.cursor += 1;
+                self.line += 1;
                 Token::EOL(Span { file_id: 0, start: self.cursor - 1, end: self.cursor })
             },
 
