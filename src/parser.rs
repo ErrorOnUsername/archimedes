@@ -14,12 +14,15 @@ impl Parser {
         }
     }
 
-    pub fn parse_token_stream(&mut self, token_stream: &Vec<Token>) {
+    pub fn parse_token_stream(&mut self, token_stream: &[Token]) {
         let token = &token_stream[self.token_idx];
 
         match token {
             Token::EOF => return,
-            Token::EOL(_span) => { /* Just ignore EOLs */ },
+            Token::EOL(_span) => {
+                /* Just ignore EOLs */
+                self.token_idx += 1;
+            },
 
             Token::KeywordImport(span) => {
                 panic!("Handle imports in parser! {:?}", span);
@@ -37,6 +40,53 @@ impl Parser {
                 //      decl SomeEnum : enum { }
                 //
                 // If it's none of those, we'll just freak out.
+                self.token_idx += 1;
+                let _ident = match &token_stream[self.token_idx] {
+                    Token::IdentName(_span, name) => name.clone(),
+                    _ => panic!("Syntax Error! Expected identifier, but got something else!")
+                };
+
+                self.token_idx += 1;
+                match &token_stream[self.token_idx] {
+                    Token::Colon(_span) => { },
+                    _ => panic!("Syntax Error! Expected a colon, but got something else!")
+                }
+
+                self.token_idx += 1;
+                let complex_type = match &token_stream[self.token_idx] {
+                    Token::LParen(_span) => 0,
+                    Token::KeywordStruct(_span) => 1,
+                    Token::KeywordEnum(_span) => 2,
+                    _ => panic!("Syntax Error! Expected complex type identifier ('struct', 'enum', '()'), but got something else!")
+                };
+
+                self.token_idx += 1;
+                if complex_type == 0 {
+                    // FIXME: Actually parse parameters
+                    match &token_stream[self.token_idx] {
+                        Token::RParen(_span) => { },
+                        _ => panic!("Syntax Error! Unterminated '(' in procedure definition")
+                    }
+                }
+
+                let _body = self.parse_block(token_stream);
+
+                match complex_type {
+                    0 => {
+                        // Procedure
+                    },
+
+                    1 => {
+                        // Struct
+                    },
+
+                    2 => {
+                        // Enum
+                    },
+
+                    _ => { }
+                }
+
                 unreachable!();
             }
 
@@ -52,19 +102,7 @@ impl Parser {
         }
     }
 
-    fn parse_procedure_decl(&mut self, _token_stream: &Vec<Token>) {
-        unreachable!();
-    }
+    fn parse_block(&mut self, _token_stream: &[Token]) -> ParsedBlock { panic!("parse_block"); }
 
-    fn parse_struct_decl(&mut self, _token_stream: &Vec<Token>) {
-        unreachable!();
-    }
-
-    fn parse_enum_decl(&mut self, _token_stream: &Vec<Token>) {
-        unreachable!();
-    }
-
-    fn parse_var_decl(&mut self, _token_stream: &Vec<Token>) {
-        unreachable!();
-    }
+    fn parse_expression(&mut self, _token_stream: &[Token]) -> ParsedExpression { panic!("parse_block"); }
 }
