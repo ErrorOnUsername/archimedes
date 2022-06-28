@@ -40,6 +40,8 @@ impl Parser {
                 //      decl SomeEnum : enum { }
                 //
                 // If it's none of those, we'll just freak out.
+                let mut stmt: ParsedStatement;
+
                 self.token_idx += 1;
                 let _ident = match &token_stream[self.token_idx] {
                     Token::IdentName(_span, name) => name.clone(),
