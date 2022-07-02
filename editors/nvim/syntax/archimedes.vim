@@ -44,7 +44,7 @@ syn match  amds_escape         display contained /\\./
 "
 " Operators
 "
-syn match amds_simple_op      display "\V\[-+/*=^&?|!><%~:;,]"
+syn match amds_simple_op      display "\V\[-+/*=^&?|!><%~]"
 syn match amds_thicc_arrow_op display "\V=>"
 syn match amds_thin_arrow_op  display "\V->"
 syn match amds_range_op       display "\V.."
