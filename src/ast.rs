@@ -44,6 +44,7 @@ pub struct ParsedVarDecl {
 /// function. These could either be methods of a struct
 /// simple functions on their own.
 pub struct ParsedProcDecl {
+    pub name: String,
     pub is_macro: bool,
     pub parameters: Vec<ParsedVarDecl>,
     pub return_type_id: TypeID,
@@ -113,6 +114,28 @@ pub enum ParsedStatement {
     Return(ParsedExpression),
 }
 
+pub struct ParsedImport {
+    pub current_module_path: String,
+    pub path: String,
+}
+
+pub struct ParsedStructDecl {
+    pub name: String,
+    pub data_members: Vec<ParsedVarDecl>,
+    pub methods: Vec<ParsedProcDecl>,
+}
+
+pub enum ParsedEnumVariant {
+    Untyped(String),
+    UnlabeledTypes(String, Vec<TypeID>),
+    LabeledTypes(String, Vec<ParsedVarDecl>)
+}
+
+pub struct ParsedEnumDecl {
+    pub name: String,
+    pub variants: Vec<ParsedEnumVariant>,
+}
+
 /// A block of statements, denoted by matching `{` and `}`.
 /// These create a new lexical scope and describe the lifetime
 /// of data.
@@ -123,5 +146,26 @@ pub struct ParsedBlock {
 impl ParsedBlock {
     pub fn new() -> Self {
         Self { stmts: Vec::new() }
+    }
+}
+
+/// A module, which is really just a file.
+pub struct ParsedModule {
+    pub name: String,
+    pub imports: Vec<ParsedImport>,
+    pub structs: Vec<ParsedStructDecl>,
+    pub enums: Vec<ParsedEnumDecl>,
+    pub procs: Vec<ParsedProcDecl>
+}
+
+impl ParsedModule {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: String::from(name),
+            imports: Vec::new(),
+            structs: Vec::new(),
+            enums: Vec::new(),
+            procs: Vec::new()
+        }
     }
 }

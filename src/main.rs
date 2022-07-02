@@ -4,7 +4,6 @@ mod types;
 mod token;
 mod tokenizer;
 
-use parser::Parser;
 use token::Token;
 use tokenizer::Tokenizer;
 
@@ -20,6 +19,4 @@ fn main() {
 
         token = tokenizer.read_next_token();
     }
-
-    let _parser = Parser::new();
 }
