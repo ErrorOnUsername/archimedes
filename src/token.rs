@@ -112,7 +112,6 @@ pub enum Token {
     KeywordImport(Span),
     KeywordDecl(Span),
     KeywordLet(Span),
-    KeywordMut(Span),
 
     KeywordStruct(Span),
     KeywordEnum(Span),

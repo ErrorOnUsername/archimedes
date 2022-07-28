@@ -1,5 +1,16 @@
 use crate::token::NumericConstant;
-use crate::types::TypeID;
+
+pub enum ComplexType {
+    Procedure,
+    Struct,
+    Enum,
+    None,
+}
+
+pub enum ParsedType {
+    Name(Vec<String>, String),
+    Array(Box<ParsedType>, ParsedExpression),
+}
 
 /// An operator that only has one operand.
 pub enum UnaryOperator {
@@ -7,11 +18,9 @@ pub enum UnaryOperator {
     PostIncrement,
     PreDecrement,
     PostDecrement,
-    ForceUnwrap,
-    MakeOptional,
     LogicalNot,
     BitwiseNot,
-    TypeCast(TypeID)
+    TypeCast(Box<ParsedType>),
 }
 
 /// An operator that has two operands.
@@ -28,15 +37,13 @@ pub enum BinaryOperator {
     BitwiseOR,
     BitwiseXOR,
     BitwiseLeftShift,
-    BitwiseRightShift
+    BitwiseRightShift,
 }
 
 /// A declaration of a variable. Either decalred with
 /// `let` or implicitly as a parameter to a funciton.
 pub struct ParsedVarDecl {
-    pub is_mutable: bool,
-    pub is_reference: bool,
-    pub type_id: TypeID,
+    pub parsed_type: ParsedType,
     pub name: String,
 }
 
@@ -45,16 +52,14 @@ pub struct ParsedVarDecl {
 /// simple functions on their own.
 pub struct ParsedProcDecl {
     pub name: String,
-    pub is_macro: bool,
     pub parameters: Vec<ParsedVarDecl>,
-    pub return_type_id: TypeID,
+    pub parsed_return_type: ParsedType,
     pub body: ParsedBlock,
 }
 
 /// A call to a procedure
 pub struct ParsedProcCall {
     pub signature: String,
-    pub is_macro: bool,
     pub passed_parameters: Vec<ParsedVarDecl>,
 }
 
@@ -63,7 +68,7 @@ pub struct ParsedProcCall {
 /// excluded from the range itself.
 pub enum RangeExprBound {
     Inclusive,
-    Exclusive
+    Exclusive,
 }
 
 /// The body of a `match` expression. It can either
@@ -71,7 +76,7 @@ pub enum RangeExprBound {
 /// has a return expression of the same type.
 pub enum MatchExprBody {
     Expr(ParsedExpression),
-    Block(ParsedBlock)
+    Block(ParsedBlock),
 }
 
 /// The case of a `match` expression that is to be matched
@@ -79,7 +84,7 @@ pub enum MatchExprBody {
 pub enum MatchExprCase {
     Expr(ParsedExpression, MatchExprBody),
     EnumVariant(String, MatchExprBody),
-    All(MatchExprBody)
+    Fallback(MatchExprBody),
 }
 
 /// An abstract representation of an expression, which is
@@ -96,8 +101,6 @@ pub enum ParsedExpression {
     UnaryOperation(Box<ParsedExpression>, UnaryOperator),
     BinaryOperation(Box<ParsedExpression>, BinaryOperator, Box<ParsedExpression>),
     ProcCall(Box<ParsedExpression>, ParsedProcCall),
-    OptionalSome(Box<ParsedExpression>),
-    OptionalNone
 }
 
 /// A statement that is to be acted upon, typically
@@ -109,6 +112,7 @@ pub enum ParsedStatement {
     Block(ParsedBlock),
     ForLoop(ParsedExpression, ParsedBlock),
     WhileLoop(ParsedExpression, ParsedBlock),
+    InfiniteLoop(ParsedBlock),
     Continue,
     Break,
     Return(ParsedExpression),
@@ -122,13 +126,12 @@ pub struct ParsedImport {
 pub struct ParsedStructDecl {
     pub name: String,
     pub data_members: Vec<ParsedVarDecl>,
-    pub methods: Vec<ParsedProcDecl>,
 }
 
 pub enum ParsedEnumVariant {
     Untyped(String),
-    UnlabeledTypes(String, Vec<TypeID>),
-    LabeledTypes(String, Vec<ParsedVarDecl>)
+    UnlabeledTypes(String, Vec<ParsedType>),
+    LabeledTypes(String, Vec<ParsedVarDecl>),
 }
 
 pub struct ParsedEnumDecl {
@@ -140,7 +143,7 @@ pub struct ParsedEnumDecl {
 /// These create a new lexical scope and describe the lifetime
 /// of data.
 pub struct ParsedBlock {
-    pub stmts: Vec<ParsedStatement>
+    pub stmts: Vec<ParsedStatement>,
 }
 
 impl ParsedBlock {
@@ -155,7 +158,7 @@ pub struct ParsedModule {
     pub imports: Vec<ParsedImport>,
     pub structs: Vec<ParsedStructDecl>,
     pub enums: Vec<ParsedEnumDecl>,
-    pub procs: Vec<ParsedProcDecl>
+    pub procs: Vec<ParsedProcDecl>,
 }
 
 impl ParsedModule {
@@ -165,7 +168,7 @@ impl ParsedModule {
             imports: Vec::new(),
             structs: Vec::new(),
             enums: Vec::new(),
-            procs: Vec::new()
+            procs: Vec::new(),
         }
     }
 }

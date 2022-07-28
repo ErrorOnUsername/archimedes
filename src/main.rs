@@ -1,6 +1,5 @@
 mod ast;
 mod parser;
-mod types;
 mod token;
 mod tokenizer;
 

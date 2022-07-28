@@ -589,8 +589,6 @@ impl Tokenizer {
 
             "let" => Token::KeywordLet(Span { file_id: 0, start, end }),
 
-            "mut" => Token::KeywordMut(Span { file_id: 0, start, end }),
-
             "struct" => Token::KeywordStruct(Span { file_id: 0, start, end }),
 
             "enum" => Token::KeywordEnum(Span { file_id: 0, start, end }),
