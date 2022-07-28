@@ -16,7 +16,7 @@ syn keyword amds_conditionals    if else match
 syn keyword amds_loops           while for loop
 syn keyword amds_ctrl_flow       return break continue
 syn keyword amds_boolean         true false
-syn keyword amds_keyword         import decl let mut
+syn keyword amds_keyword         decl let as
 syn keyword amds_type            nothing bool u8 i8 u16 i16 u32 i32 u64 i64 usize isize f32 f64
 syn keyword amds_complex_type    struct enum
 syn keyword amds_todo            contained NOTE TODO FIXME BUG
@@ -44,7 +44,7 @@ syn match  amds_escape         display contained /\\./
 "
 " Operators
 "
-syn match amds_simple_op      display "\V\[-+/*=^&?|!><%~]"
+syn match amds_simple_op      display "\V\[-+/*=^&?|!><%~:]"
 syn match amds_thicc_arrow_op display "\V=>"
 syn match amds_thin_arrow_op  display "\V->"
 syn match amds_range_op       display "\V.."
@@ -53,6 +53,13 @@ hi def link amds_simple_op       amds_operator
 hi def link amds_thicc_arrow_op  amds_operator
 hi def link amds_thin_arrow_op   amds_operator
 hi def link amds_range_arrow_op  amds_operator
+
+"
+" Compile-Time Directives
+"
+syn match amds_directive /#\w\+\s/
+
+hi def link amds_directive       amds_directives
 
 "
 " Functions
@@ -89,6 +96,7 @@ hi def link amds_loops           Repeat
 hi def link amds_ctrl_flow       Special
 hi def link amds_boolean         Boolean
 hi def link amds_keyword         Keyword
+hi def link amds_directives      Macro
 hi def link amds_type            Type
 hi def link amds_complex_type    Structure
 hi def link amds_number          Number
