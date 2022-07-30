@@ -1,0 +1,15 @@
+#!/usr/bin/python3
+
+import sys
+import os
+
+total_count = 0
+
+for root, dirs, files in os.walk('src/'):
+    for file in files:
+        if file.endswith('.rs'):
+            line_count = sum(1 for line in open(f'{root}{file}'))
+            total_count += line_count
+            print(f'{file: <20}-> {line_count}')
+
+print(f'total line count: {total_count}')
