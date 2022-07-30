@@ -14,7 +14,7 @@ decl some_proc : (param: u16) -> f32
 	return ret;
 }
 
-decl CT_RESULT := #exec some_proc(10);
+decl CT_RESULT: f32 = #exec some_proc(10);
 
 // Implicitly returns nothing (i.e. decl main : () -> nothing { })
 decl main : ()
