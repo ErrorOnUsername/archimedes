@@ -1,5 +1,3 @@
-#import "core::io"
-
 decl some_proc : (param: u16) -> f32
 {
 	let ret: f32 = param as f32;

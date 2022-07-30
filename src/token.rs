@@ -5,7 +5,7 @@ pub struct Span {
     pub end: usize,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum IntegerLiteralFormat {
     Binary,
     Octal,
@@ -13,13 +13,13 @@ pub enum IntegerLiteralFormat {
     Hexadecimal
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum FloatingPointLiteralFormat {
     Standard,
     ENotation
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum NumericConstant {
     Integer(String, IntegerLiteralFormat),
     FloatingPoint(String, FloatingPointLiteralFormat),
@@ -30,6 +30,7 @@ pub enum PrimitiveType {
     Nothing,
     Bool,
     Char,
+    String,
     U8,
     I8,
     U16,
@@ -109,7 +110,6 @@ pub enum Token {
     Percent(Span),       // %
     PercentAssign(Span), // %=
 
-    KeywordImport(Span),
     KeywordDecl(Span),
     KeywordLet(Span),
 
@@ -121,6 +121,7 @@ pub enum Token {
     KeywordElse(Span),
     KeywordFor(Span),
     KeywordWhile(Span),
+    KeywordLoop(Span),
     KeywordContinue(Span),
     KeywordBreak(Span),
     KeywordReturn(Span),

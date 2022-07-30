@@ -583,30 +583,21 @@ impl Tokenizer {
         let end = self.cursor;
 
         return match ident.as_str() {
-            "import" => Token::KeywordImport(Span { file_id: 0, start, end }),
-
             "decl" => Token::KeywordDecl(Span { file_id: 0, start, end }),
-
             "let" => Token::KeywordLet(Span { file_id: 0, start, end }),
-
             "struct" => Token::KeywordStruct(Span { file_id: 0, start, end }),
-
             "enum" => Token::KeywordEnum(Span { file_id: 0, start, end }),
 
             "match" => Token::KeywordMatch(Span { file_id: 0, start, end }),
-
             "if" => Token::KeywordIf(Span { file_id: 0, start, end }),
-
             "else" => Token::KeywordElse(Span { file_id: 0, start, end }),
 
             "for" => Token::KeywordFor(Span { file_id: 0, start, end }),
-
             "while" => Token::KeywordWhile(Span { file_id: 0, start, end }),
+            "loop" => Token::KeywordLoop(Span { file_id: 0, start, end }),
 
             "continue" => Token::KeywordContinue(Span { file_id: 0, start, end }),
-
             "break" => Token::KeywordBreak(Span { file_id: 0, start, end }),
-
             "return" => Token::KeywordReturn(Span { file_id: 0, start, end }),
 
             "nothing" => {
@@ -627,6 +618,13 @@ impl Tokenizer {
                 Token::BuiltinType(
                     Span { file_id: 0, start, end },
                     PrimitiveType::Char
+                )
+            },
+
+            "string" => {
+                Token::BuiltinType(
+                    Span { file_id: 0, start, end },
+                    PrimitiveType::String
                 )
             },
 
