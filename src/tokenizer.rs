@@ -49,7 +49,11 @@ impl Tokenizer {
     }
 
     pub fn dump_file_contents(&self) {
+        println!("***** START SOURCE DUMP *****\n");
+        print!("\x1b[1;36m");
         println!("{}", self.current_file_contents);
+        print!("\x1b[0;0m");
+        println!("***** END SOURCE DUMP *****");
     }
 
     fn byte_at(&self, idx: usize) -> u8 {
@@ -596,9 +600,14 @@ impl Tokenizer {
             "while" => Token::KeywordWhile(Span { file_id: 0, start, end }),
             "loop" => Token::KeywordLoop(Span { file_id: 0, start, end }),
 
+            "in" => Token::KeywordIn(Span { file_id: 0, start, end }),
+
             "continue" => Token::KeywordContinue(Span { file_id: 0, start, end }),
             "break" => Token::KeywordBreak(Span { file_id: 0, start, end }),
             "return" => Token::KeywordReturn(Span { file_id: 0, start, end }),
+
+            "true" => Token::BooleanLiteral(Span { file_id: 0, start, end }, true),
+            "false" => Token::BooleanLiteral(Span { file_id: 0, start, end }, false),
 
             "nothing" => {
                 Token::BuiltinType(

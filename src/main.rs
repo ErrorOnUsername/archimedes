@@ -5,12 +5,11 @@ mod tokenizer;
 
 use token::Token;
 use tokenizer::Tokenizer;
+use parser::Parser;
 
 fn main() {
-    let thing: u32 = 0xdeadbeef;
     let mut tokenizer = Tokenizer::new(String::from("test_files/test.amds"));
-
-    //tokenizer.dump_file_contents();
+    tokenizer.dump_file_contents();
 
     let mut current_token = tokenizer.read_next_token();
     let mut token_stream = Vec::new();
@@ -20,7 +19,13 @@ fn main() {
         current_token = tokenizer.read_next_token();
     }
 
-    let main_module = parser::parse_module(&token_stream, 0);
+    let mut parser = Parser {
+        token_stream,
+        idx: 0
+    };
+
+    let main_module = parser.parse_module();
+
     println!("main_module:");
     println!("    name: {}", main_module.name);
     println!("    structs:");

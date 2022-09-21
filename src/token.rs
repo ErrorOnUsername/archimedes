@@ -53,6 +53,7 @@ pub enum Token {
     StringLiteral(Span, String), // ""
     CharLiteral(Span, u8),       // ''
     Number(Span, NumericConstant),
+    BooleanLiteral(Span, bool),
 
     LParen(Span),          // (
     RParen(Span),          // )
@@ -122,6 +123,7 @@ pub enum Token {
     KeywordFor(Span),
     KeywordWhile(Span),
     KeywordLoop(Span),
+    KeywordIn(Span),
     KeywordContinue(Span),
     KeywordBreak(Span),
     KeywordReturn(Span),

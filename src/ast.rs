@@ -23,26 +23,72 @@ pub enum UnaryOperator {
     PostDecrement,
     LogicalNot,
     BitwiseNot,
+    AddressOf,
+    Dereference,
     TypeCast(Box<ParsedType>),
 }
 
 /// An operator that has two operands.
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum BinaryOperator {
-    Assign,
+    Invalid,
+
     Add,
     Subtract,
     Multiply,
     Divide,
     Modulo,
+
     LogicalAnd,
     LogicalOr,
     LogicalXOR,
+
+    NEQ,
+    EQ,
+    LT,
+    GT,
+    LEQ,
+    GEQ,
+
     BitwiseAnd,
-    BitwiseOR,
+    BitwiseOr,
     BitwiseXOR,
     BitwiseLeftShift,
     BitwiseRightShift,
+
+    Assign,
+
+    AddAssign,
+    SubtractAssign,
+    MultiplyAssign,
+    DivideAssign,
+    ModuloAssign,
+
+    AndAssign,
+    OrAssign,
+    XORAssign,
+
+    LeftShiftAssign,
+    RightShiftAssign,
+}
+
+impl BinaryOperator {
+    pub fn is_assignment(&self) -> bool {
+        match self {
+            BinaryOperator::Assign          |
+            BinaryOperator::AddAssign       |
+            BinaryOperator::SubtractAssign  |
+            BinaryOperator::MultiplyAssign  |
+            BinaryOperator::DivideAssign    |
+            BinaryOperator::ModuloAssign    |
+            BinaryOperator::AndAssign       |
+            BinaryOperator::OrAssign        |
+            BinaryOperator::XORAssign       |
+            BinaryOperator::LeftShiftAssign |
+            BinaryOperator::RightShiftAssign => true,
+            _ => false
+        }
+    }
 }
 
 /// A declaration of a variable. Either decalred with
@@ -51,6 +97,7 @@ pub enum BinaryOperator {
 pub struct ParsedVarDecl {
     pub parsed_type: ParsedType,
     pub name: String,
+    pub defualt_value: ParsedExpression,
 }
 
 /// A declaration of a procedure, otherwise known as a
@@ -67,7 +114,7 @@ pub struct ParsedProcDecl {
 /// A call to a procedure
 #[derive(Clone)]
 pub struct ParsedProcCall {
-    pub signature: String,
+    pub name: String,
     pub passed_parameters: Vec<ParsedVarDecl>,
 }
 
@@ -106,13 +153,76 @@ pub enum ParsedExpression {
     Bool(bool),
     NumericConstant(NumericConstant),
     StringLiteral(String),
-    CharLiteral(String),
-    Var(Vec<String>, String),
+    CharLiteral(u8),
+    Var(String),
+    NamespacedVar(Vec<String>, String),
     Range(RangeExprBound, Box<ParsedExpression>, Box<ParsedExpression>, RangeExprBound),
     Match(Box<ParsedExpression>, Vec<MatchExprCase>),
+    Operator(BinaryOperator),
     UnaryOperation(Box<ParsedExpression>, UnaryOperator),
     BinaryOperation(Box<ParsedExpression>, BinaryOperator, Box<ParsedExpression>),
-    ProcCall(Box<ParsedExpression>, ParsedProcCall),
+    ProcCall(ParsedProcCall),
+    Invalid,
+}
+
+impl ParsedExpression {
+    pub fn priority(&self) -> i32 {
+        match self {
+            ParsedExpression::Operator(op) => {
+                match op {
+                    BinaryOperator::Invalid => -1,
+
+                    BinaryOperator::Multiply |
+                    BinaryOperator::Divide   |
+                    BinaryOperator::Modulo => 12,
+
+                    BinaryOperator::Add |
+                    BinaryOperator::Subtract => 11,
+
+                    BinaryOperator::BitwiseLeftShift |
+                    BinaryOperator::BitwiseRightShift => 10,
+
+                    BinaryOperator::LT  |
+                    BinaryOperator::GT  |
+                    BinaryOperator::LEQ |
+                    BinaryOperator::GEQ => 9,
+
+                    BinaryOperator::NEQ |
+                    BinaryOperator::EQ => 8,
+
+                    BinaryOperator::BitwiseAnd => 7,
+                    BinaryOperator::BitwiseXOR => 6,
+                    BinaryOperator::BitwiseOr => 5,
+
+                    BinaryOperator::LogicalAnd => 4,
+                    BinaryOperator::LogicalXOR => 3,
+                    BinaryOperator::LogicalOr => 2,
+
+                    BinaryOperator::Assign          |
+                    BinaryOperator::AddAssign       |
+                    BinaryOperator::SubtractAssign  |
+                    BinaryOperator::MultiplyAssign  |
+                    BinaryOperator::DivideAssign    |
+                    BinaryOperator::ModuloAssign    |
+                    BinaryOperator::AndAssign       |
+                    BinaryOperator::OrAssign        |
+                    BinaryOperator::XORAssign       |
+                    BinaryOperator::LeftShiftAssign |
+                    BinaryOperator::RightShiftAssign => 1,
+                }
+            }
+            _ => -1
+        }
+    }
+
+    pub fn is_assignable(&self) -> bool {
+        match self {
+            ParsedExpression::Var(_)              |
+            ParsedExpression::NamespacedVar(_, _) |
+            ParsedExpression::UnaryOperation(_, _) => true,
+            _ => false
+        }
+    }
 }
 
 /// A statement that is to be acted upon, typically
@@ -120,10 +230,11 @@ pub enum ParsedExpression {
 #[derive(Clone)]
 pub enum ParsedStatement {
     Expr(ParsedExpression),
-    VarDecl(ParsedVarDecl, ParsedExpression),
+    VarDecl(ParsedVarDecl),
+    VarAssign(String, BinaryOperator, ParsedExpression),
     If(ParsedExpression, ParsedBlock, Option<Box<ParsedStatement>>),
     Block(ParsedBlock),
-    ForLoop(ParsedExpression, ParsedBlock),
+    ForLoop(ParsedVarDecl, ParsedExpression, ParsedBlock),
     WhileLoop(ParsedExpression, ParsedBlock),
     InfiniteLoop(ParsedBlock),
     Continue,
