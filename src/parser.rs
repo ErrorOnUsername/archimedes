@@ -621,7 +621,7 @@ impl Parser {
 
     fn parse_expression(&mut self, can_assign: bool, allow_newlines: bool) -> ParsedExpression {
         let mut expr_stack: Vec<ParsedExpression> = Vec::new();
-        let mut last_op_priority = i32::MAX;
+        let mut last_op_priority = 1_000_000;
 
         let lhs = self.parse_operand();
         expr_stack.push(lhs);
@@ -657,6 +657,9 @@ impl Parser {
 
                 last_op_priority = pop_op.priority();
 
+                // This might look backwards, but remember we're using a stack,
+                // so we pop it off in reverse, so the high priority ones end
+                // up at the top of the stack.
                 if last_op_priority < op_priority {
                     expr_stack.push(pop_op);
                     expr_stack.push(pop_rhs);
@@ -665,7 +668,7 @@ impl Parser {
 
                 let pop_lhs = expr_stack.pop().unwrap();
 
-                match &op {
+                match &pop_op {
                     ParsedExpression::Operator(bin_op) => {
                         expr_stack.push(ParsedExpression::BinaryOperation(Box::new(pop_lhs), bin_op.clone(), Box::new(pop_rhs)));
                     },
@@ -691,6 +694,8 @@ impl Parser {
                 _ => panic!("WHAT?!?! Operator is not an operator")
             }
         }
+
+        println!("FNL EXPR: {:?}", expr_stack[0]);
 
         expr_stack[0].clone()
     }
