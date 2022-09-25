@@ -128,5 +128,7 @@ pub enum Token {
     KeywordBreak(Span),
     KeywordReturn(Span),
 
+    KeywordAs(Span),
+
     BuiltinType(Span, PrimitiveType),
 }

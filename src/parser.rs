@@ -33,10 +33,7 @@ impl Parser {
 
             match token {
                 Token::EOF => break,
-                Token::EOL(_span) => {
-                    /* Just ignore EOLs */
-                    continue
-                },
+                Token::EOL(_span) => { /* Just ignore EOLs */ },
 
                 Token::Hash(span) => {
                     panic!("Handle directives here: {:?}", span);
@@ -79,8 +76,8 @@ impl Parser {
                         Token::LParen(_span) => ComplexType::Procedure,
                         Token::KeywordStruct(_span) => ComplexType::Struct,
                         Token::KeywordEnum(_span) => ComplexType::Enum,
-                        Token::IdentName(_span, _name) => ComplexType::None,
-                        Token::BuiltinType(_span, _type_name) => ComplexType::None,
+                        Token::IdentName(_span, _name) => ComplexType::Constant,
+                        Token::BuiltinType(_span, _type_name) => ComplexType::Constant,
                         _ => panic!("Syntax Error! Expected complex type identifier ('struct', 'enum', '()'), but got something else!")
                     };
 
@@ -89,16 +86,18 @@ impl Parser {
                             let param_list: Vec<ParsedVarDecl>;
                             param_list = self.parse_param_list_decl();
 
+                            self.eat_newlines();
+
                             let has_return_type = match self.current() {
                                 Token::ThinArrow(_span) => true,
-                                Token::LCurly(_span) => true,
+                                Token::LCurly(_span) => false,
                                 _ => { panic!("Syntax Error! Unexpected Token in procedure definition! Expected '{{' or '->' but got: {:?}", self.current()); },
                             };
 
-                            self.idx += 1;
 
                             let return_type: ParsedType;
                             if has_return_type {
+                                self.idx += 1;
                                 return_type = self.parse_type_name();
                             } else {
                                 return_type = ParsedType::Name(Vec::new(), String::from("nothing"));
@@ -176,9 +175,9 @@ impl Parser {
                             }
                         },
 
-                        ComplexType::Enum => { },
+                        ComplexType::Enum => { todo!("Implement Enums") },
 
-                        ComplexType::None => { panic!("The type you tried to define was not a struct, enum, or procedure, which are the only supported complex types!"); }
+                        ComplexType::Constant => { todo!("Implement constants") },
                     }
                 },
 
@@ -199,71 +198,67 @@ impl Parser {
         let mut at_type_end = false;
 
         let mut mod_path: Vec<String> = Vec::new();
-        let type_name: String;
 
         // Short-circuit for builtins
-        match self.current() {
-            Token::BuiltinType(_span, primitive) => {
-                return match primitive {
-                    PrimitiveType::Nothing => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("nothing"))
-                    },
-                    PrimitiveType::Bool => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("bool"))
-                    },
-                    PrimitiveType::Char => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("char"))
-                    },
-                    PrimitiveType::String => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("string"))
-                    },
-                    PrimitiveType::U8 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("u8"))
-                    },
-                    PrimitiveType::I8 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("i8"))
-                    },
-                    PrimitiveType::U16 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("u16"))
-                    },
-                    PrimitiveType::I16 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("i16"))
-                    },
-                    PrimitiveType::U32 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("u32"))
-                    },
-                    PrimitiveType::I32 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("i32"))
-                    },
-                    PrimitiveType::U64 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("u64"))
-                    },
-                    PrimitiveType::I64 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("i64"))
-                    },
-                    PrimitiveType::F32 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("f32"))
-                    },
-                    PrimitiveType::F64 => {
-                        self.idx += 1;
-                        ParsedType::Name(Vec::new(), String::from("f64"))
-                    }
+        if let Token::BuiltinType(_span, primitive) = self.current() {
+            return match primitive {
+                PrimitiveType::Nothing => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("nothing"))
+                },
+                PrimitiveType::Bool => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("bool"))
+                },
+                PrimitiveType::Char => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("char"))
+                },
+                PrimitiveType::String => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("string"))
+                },
+                PrimitiveType::U8 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("u8"))
+                },
+                PrimitiveType::I8 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("i8"))
+                },
+                PrimitiveType::U16 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("u16"))
+                },
+                PrimitiveType::I16 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("i16"))
+                },
+                PrimitiveType::U32 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("u32"))
+                },
+                PrimitiveType::I32 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("i32"))
+                },
+                PrimitiveType::U64 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("u64"))
+                },
+                PrimitiveType::I64 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("i64"))
+                },
+                PrimitiveType::F32 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("f32"))
+                },
+                PrimitiveType::F64 => {
+                    self.idx += 1;
+                    ParsedType::Name(Vec::new(), String::from("f64"))
                 }
-            },
-            _ => { }
+            };
         }
 
         // TODO: Add array types as well
@@ -295,11 +290,12 @@ impl Parser {
             self.idx += 1;
         }
 
-        if last_was_ident {
-            type_name = mod_path.pop().expect("Sytax Error! No type name given!");
+        let type_name: String = if last_was_ident {
+            mod_path.pop().expect("Sytax Error! No type name given!")
         } else {
-            panic!("Syntax Error! Incomplete type name. No type name folling '::'");
-        }
+            println!("{:?}", self.current());
+            panic!("Syntax Error! Incomplete type name. No type name following '::'");
+        };
 
         ParsedType::Name(mod_path, type_name)
     }
@@ -364,12 +360,16 @@ impl Parser {
                     passed_colon = false;
                 },
                 Token::RParen(_span) => {
-                    assert!(found_name && passed_colon, "Syntax Error! No name or type on parameter declaration!");
-                    params.push(ParsedVarDecl {
-                        parsed_type: parsed_type.clone(),
-                        name: name.clone(),
-                        defualt_value: ParsedExpression::Invalid
-                    });
+                    assert!(!(found_name ^ passed_colon), "Syntax Error! No name or type on parameter declaration!");
+
+                    if found_name && passed_colon {
+                        params.push(ParsedVarDecl {
+                            parsed_type: parsed_type.clone(),
+                            name: name.clone(),
+                            defualt_value: ParsedExpression::Invalid
+                        });
+                    }
+
                     is_at_list_end = true;
                 },
                 _ => panic!("Syntax Error! Unexpected token in parameter list declaration: {:?}", self.current())
@@ -386,8 +386,8 @@ impl Parser {
         let mut found_name = false;
         let mut passed_colon = false;
 
+        let parsed_type = ParsedType::Name(Vec::new(), String::new());
         let mut name = String::new();
-        let mut parsed_type = ParsedType::Name(Vec::new(), String::new());
         let mut default_value = ParsedExpression::Invalid;
         let mut params = Vec::new();
 
@@ -404,6 +404,7 @@ impl Parser {
                         found_name = true;
                     } else {
                         default_value = self.parse_expression(false, true);
+                        continue;
                     }
                 },
                 Token::Colon(_span) => {
@@ -420,15 +421,20 @@ impl Parser {
                     passed_colon = false;
                 },
                 Token::RParen(_span) => {
-                    assert!(found_name && passed_colon, "Syntax Error! No name or type on parameter declaration!");
-                    params.push(ParsedVarDecl {
-                        parsed_type: parsed_type.clone(),
-                        name: name.clone(),
-                        defualt_value: default_value.clone()
-                    });
+                    assert!(!(found_name ^ passed_colon), "Syntax Error! No label on parameter name");
+                    if found_name && passed_colon {
+                        params.push(ParsedVarDecl {
+                            parsed_type: parsed_type.clone(),
+                            name: name.clone(),
+                            defualt_value: default_value.clone()
+                        });
+                    }
                     is_at_list_end = true;
                 },
-                _ => panic!("Syntax Error! Unexpected token in parameter list declaration: {:?}", self.current())
+                _ => {
+                    assert!(found_name && passed_colon, "No label on parameter name, got {:?}", self.current());
+                    default_value = self.parse_expression(false, true);
+                }
             }
 
             self.idx += 1;
@@ -507,6 +513,9 @@ impl Parser {
 
                 let default_value = self.parse_expression(false, true);
                 var_decl.defualt_value = default_value;
+
+                assert!(matches!(self.current(), Token::Semicolon(_span)), "Syntax Error! Expected ';' at end of variable declaration, got {:?}", self.current());
+                self.idx += 1;
 
                 ParsedStatement::VarDecl(var_decl)
             },
@@ -589,19 +598,20 @@ impl Parser {
 
             Token::KeywordReturn(_span) => {
                 self.idx += 1;
-
                 let expr = self.parse_expression(false, true);
 
-                match self.current() {
-                    Token::Semicolon(_span) => self.idx += 1,
-                    _ => panic!("Syntax Error! Expected ';', got: {:?}", self.current())
-                }
+                assert!(matches!(self.current(), Token::Semicolon(_span)), "Syntax Error! Expected ';' at end of return expression, got {:?}", self.current());
+                self.idx += 1;
 
                 ParsedStatement::Return(expr)
             },
 
             _ => {
                 let expr = self.parse_expression(true, true);
+
+                assert!(matches!(self.current(), Token::Semicolon(_span)), "Syntax Error! Expected ';' at end of expression, got {:?}", self.current());
+                self.idx += 1;
+
                 ParsedStatement::Expr(expr)
             }
         };
@@ -610,19 +620,15 @@ impl Parser {
     }
 
     fn parse_expression(&mut self, can_assign: bool, allow_newlines: bool) -> ParsedExpression {
-        let expr_stack: Vec<ParsedExpression> = Vec::new();
-        let last_op_priority = i32::MAX;
+        let mut expr_stack: Vec<ParsedExpression> = Vec::new();
+        let mut last_op_priority = i32::MAX;
 
         let lhs = self.parse_operand();
         expr_stack.push(lhs);
 
         loop {
             if allow_newlines {
-                if self.is_eof() ||
-                  match self.current() {
-                      Token::LCurly(_span) => true,
-                      _ => false
-                  }
+                if self.is_eof() || matches!(self.current(), Token::LCurly(_span))
                 { break; }
 
                 self.eat_newlines();
@@ -635,9 +641,10 @@ impl Parser {
             let op = self.parse_operator(can_assign);
             let op_priority = op.priority();
 
-            match op {
-                ParsedExpression::Invalid => break,
-                _ => { }
+            if let ParsedExpression::Operator(b_op) = &op {
+                if matches!(&b_op, BinaryOperator::Invalid) {
+                    break
+                }
             }
 
             self.eat_newlines();
@@ -658,9 +665,9 @@ impl Parser {
 
                 let pop_lhs = expr_stack.pop().unwrap();
 
-                match op {
+                match &op {
                     ParsedExpression::Operator(bin_op) => {
-                        expr_stack.push(ParsedExpression::BinaryOperation(Box::new(pop_lhs), bin_op, Box::new(pop_rhs)));
+                        expr_stack.push(ParsedExpression::BinaryOperation(Box::new(pop_lhs), bin_op.clone(), Box::new(pop_rhs)));
                     },
                     _ => panic!("WHAT?!?! Operator is not an operator")
                 }
@@ -679,13 +686,13 @@ impl Parser {
 
             match pop_op {
                 ParsedExpression::Operator(bin_op) => {
-                    expr_stack.push(ParsedExpression::BinaryOperation(Box::new(pop_lhs), bin_op, Box::new(pop_lhs)))
+                    expr_stack.push(ParsedExpression::BinaryOperation(Box::new(pop_lhs), bin_op, Box::new(pop_rhs)))
                 },
                 _ => panic!("WHAT?!?! Operator is not an operator")
             }
         }
 
-        return expr_stack[0];
+        expr_stack[0].clone()
     }
 
     fn parse_operand(&mut self) -> ParsedExpression {
@@ -706,6 +713,16 @@ impl Parser {
                 let expr = self.parse_operand();
                 ParsedExpression::UnaryOperation(Box::new(expr), UnaryOperator::AddressOf)
             },
+            Token::Bang(_span) => {
+                self.idx += 1;
+                let expr = self.parse_operand();
+                ParsedExpression::UnaryOperation(Box::new(expr), UnaryOperator::LogicalNot)
+            },
+            Token::Tilde(_span) => {
+                self.idx += 1;
+                let expr = self.parse_operand();
+                ParsedExpression::UnaryOperation(Box::new(expr), UnaryOperator::BitwiseNot)
+            },
             Token::PlusPlus(_span) => {
                 self.idx += 1;
                 let expr = self.parse_operand();
@@ -717,30 +734,37 @@ impl Parser {
                 ParsedExpression::UnaryOperation(Box::new(expr), UnaryOperator::PreDecrement)
             },
             Token::StringLiteral(_span, lit) => {
+                let string = lit.clone();
                 self.idx += 1;
-                ParsedExpression::StringLiteral(lit.clone())
+                ParsedExpression::StringLiteral(string)
             },
             Token::CharLiteral(_span, lit) => {
+                let ch = *lit;
                 self.idx += 1;
-                ParsedExpression::CharLiteral(*lit)
+                ParsedExpression::CharLiteral(ch)
             },
             Token::BooleanLiteral(_span, val) => {
+                let b = *val;
                 self.idx += 1;
-                ParsedExpression::Bool(*val)
+                ParsedExpression::Bool(b)
             },
             Token::Number(_span, constant) => {
+                let n = constant.clone();
                 self.idx += 1;
-                ParsedExpression::NumericConstant(constant.clone())
+                ParsedExpression::NumericConstant(n)
             },
             Token::IdentName(_span, name) => {
-                self.idx += 1;
+                let ident = name.clone();
 
                 match self.peek() {
                     Token::LParen(_span) => {
                         let call = self.parse_proc_call();
                         ParsedExpression::ProcCall(call)
                     }
-                    _ => ParsedExpression::Var(name.clone())
+                    _ => {
+                        self.idx += 1;
+                        ParsedExpression::Var(ident)
+                    }
                 }
             },
             _ => panic!("Unexpected token: {:?}", self.current())
@@ -748,6 +772,23 @@ impl Parser {
     }
 
     fn parse_operand_postfix(&mut self, base: ParsedExpression) -> ParsedExpression {
+        match self.current() {
+            Token::PlusPlus(_span) => {
+                self.idx += 1;
+                ParsedExpression::UnaryOperation(Box::new(base), UnaryOperator::PostIncrement)
+            },
+            Token::MinusMinus(_span) => {
+                self.idx += 1;
+                ParsedExpression::UnaryOperation(Box::new(base), UnaryOperator::PostDecrement)
+            },
+            Token::KeywordAs(_span) => {
+                self.idx += 1;
+                let to_type = self.parse_type_name();
+                ParsedExpression::UnaryOperation(Box::new(base), UnaryOperator::TypeCast(Box::new(to_type)))
+            }
+            Token::LAngle(_span) => panic!("Add array indexing"),
+            _ => base
+        }
     }
 
     fn parse_range_expression(&mut self) -> ParsedExpression {
@@ -833,7 +874,10 @@ impl Parser {
     }
 
     fn parse_proc_call(&mut self) -> ParsedProcCall {
-        let ret: ParsedProcCall;
+        let mut ret = ParsedProcCall {
+            name: String::new(),
+            passed_parameters: Vec::new(),
+        };
 
         ret.name = match self.current() {
             Token::IdentName(_span, name) => name.clone(),
@@ -860,16 +904,10 @@ impl Parser {
     }
 
     fn is_eof(&self) -> bool {
-        match self.current() {
-            Token::EOF => true,
-            _ => false
-        }
+        matches!(self.current(), Token::EOF)
     }
 
     fn is_eol(&self) -> bool {
-        match self.current() {
-            Token::EOL(_span) => true,
-            _ => false
-        }
+        matches!(self.current(), Token::EOL(_span))
     }
 }

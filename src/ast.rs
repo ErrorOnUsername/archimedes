@@ -5,7 +5,7 @@ pub enum ComplexType {
     Procedure,
     Struct,
     Enum,
-    None,
+    Constant,
 }
 
 #[derive(Clone)]
@@ -29,7 +29,7 @@ pub enum UnaryOperator {
 }
 
 /// An operator that has two operands.
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOperator {
     Invalid,
 

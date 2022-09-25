@@ -99,6 +99,10 @@ impl Tokenizer {
 
                         self.cursor += 1;
                     }
+                } else {
+                    // We're looking at a `/` or `/=`
+                    self.cursor -= 1;
+                    break;
                 }
             }
 
@@ -113,7 +117,7 @@ impl Tokenizer {
 
         self.consume_useless_bytes();
 
-        return match self.byte_at(self.cursor) {
+        match self.byte_at(self.cursor) {
             b'\n' => {
                 self.cursor += 1;
                 self.line += 1;
@@ -578,7 +582,7 @@ impl Tokenizer {
             self.cursor += 1;
         }
 
-        if ident.len() == 0 {
+        if ident.is_empty() {
             // FIXME: Propagate error rather that just freaking out
             panic!("Unknown token \"{}\" at cursor: {}", self.byte_at(self.cursor) as char, self.cursor);
         }
@@ -608,6 +612,8 @@ impl Tokenizer {
 
             "true" => Token::BooleanLiteral(Span { file_id: 0, start, end }, true),
             "false" => Token::BooleanLiteral(Span { file_id: 0, start, end }, false),
+
+            "as" => Token::KeywordAs(Span { file_id: 0, start, end }),
 
             "nothing" => {
                 Token::BuiltinType(
