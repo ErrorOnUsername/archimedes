@@ -695,8 +695,6 @@ impl Parser {
             }
         }
 
-        println!("FNL EXPR: {:?}", expr_stack[0]);
-
         expr_stack[0].clone()
     }
 
