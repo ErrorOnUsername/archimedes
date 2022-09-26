@@ -1,8 +1,5 @@
 use crate::ast::*;
-use crate::token::{
-    Token,
-    PrimitiveType,
-};
+use crate::token::Token;
 
 pub struct Parser {
     pub token_stream: Vec<Token>,
@@ -122,57 +119,81 @@ impl Parser {
                         },
 
                         ComplexType::Struct => {
+                            self.idx += 1;
+
+                            let mut struct_decl = ParsedStructDecl {
+                                name: ident,
+                                data_members: Vec::new()
+                            };
+
                             let mut member_name: Option<String> = None;
                             let mut member_type: Option<ParsedType> = None;
                             let mut is_past_colon = false;
                             let mut in_struct_body = match self.current() {
                                 Token::LCurly(_span) => true,
-                                _ => { panic!("Syntax Error! Missing '{{' in struct declaration"); }
+                                _ => { panic!("Syntax Error! Expected '{{' in struct declaration, got {:?}", self.current()); }
                             };
 
+                            self.idx += 1;
+
                             while in_struct_body {
+                                self.eat_newlines();
                                 token = self.current();
 
                                 match token {
                                     Token::RCurly(_span) => in_struct_body = false,
-                                    Token::IdentName(_span, _name) => {
+                                    Token::IdentName(_span, name) => {
                                         // First determine if we're looking at a member name or type name.
                                         if member_name.is_none() && member_type.is_none() {
                                             // We're looking at a member name
+                                            member_name = Some(name.clone());
                                         } else if is_past_colon && (member_type.is_none() && member_name.is_some()) {
                                             // We're looking at a non-primitive type name
+                                            member_type = Some(self.parse_type_name());
                                         } else {
                                             panic!("Syntax Error! Invalid Placement of identifier name in struct member declaration [{:?}]", token);
                                         }
                                     },
                                     Token::Colon(_span) => {
-                                        if !(member_name.is_some() && member_type.is_none()) {
+                                        if member_name.is_some() && member_type.is_none() {
+                                            is_past_colon = true;
+                                        } else {
                                             panic!("Syntax Error! Invalid Placement of ':' in struct member declaration [{:?}]", token);
                                         }
-                                        is_past_colon = true;
                                     },
                                     Token::BuiltinType(_span, _primitive) => {
                                         if is_past_colon && (member_type.is_none() && member_name.is_some()) {
+                                            member_type = Some(self.parse_type_name());
+                                            continue;
                                         } else {
                                             panic!("Syntax Error! Invalid Placement of type name in struct member declaration [{:?}]", token);
                                         }
                                     },
-                                    Token::Semicolon(_span) => {
+                                    Token::Comma(_span) => {
+                                        assert!(member_name.is_some() && member_type.is_some(), "Unexpected ',' in struct member definition");
+
+                                        struct_decl.data_members.push(ParsedVarDecl {
+                                                                          parsed_type: member_type.unwrap(),
+                                                                          name: member_name.unwrap(),
+                                                                          defualt_value: ParsedExpression::Invalid
+                                                                      });
+
                                         member_name = None;
                                         member_type = None;
                                         is_past_colon = false;
                                     },
-                                    Token::EOL(_span) => {
-                                        if !(!is_past_colon && member_name.is_none() && member_type.is_none()) {
-                                            panic!("Syntax Error! Invalid placement of new line in struct member declaration [{:?}]", token);
-                                        }
-                                    },
-
-                                    _ => { }
+                                    _ => {
+                                        assert!(member_name.is_some() && member_type.is_some(), "Unexpected token in struct member definition: {:?}", self.current());
+                                        member_name = None;
+                                        member_type = None;
+                                        is_past_colon = false;
+                                    }
                                 }
 
                                 self.idx += 1;
                             }
+
+                            module.structs.push(struct_decl);
                         },
 
                         ComplexType::Enum => { todo!("Implement Enums") },
@@ -201,67 +222,13 @@ impl Parser {
 
         // Short-circuit for builtins
         if let Token::BuiltinType(_span, primitive) = self.current() {
-            return match primitive {
-                PrimitiveType::Nothing => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("nothing"))
-                },
-                PrimitiveType::Bool => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("bool"))
-                },
-                PrimitiveType::Char => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("char"))
-                },
-                PrimitiveType::String => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("string"))
-                },
-                PrimitiveType::U8 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("u8"))
-                },
-                PrimitiveType::I8 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("i8"))
-                },
-                PrimitiveType::U16 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("u16"))
-                },
-                PrimitiveType::I16 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("i16"))
-                },
-                PrimitiveType::U32 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("u32"))
-                },
-                PrimitiveType::I32 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("i32"))
-                },
-                PrimitiveType::U64 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("u64"))
-                },
-                PrimitiveType::I64 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("i64"))
-                },
-                PrimitiveType::F32 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("f32"))
-                },
-                PrimitiveType::F64 => {
-                    self.idx += 1;
-                    ParsedType::Name(Vec::new(), String::from("f64"))
-                }
-            };
+            let ty = ParsedType::Name(Vec::new(), String::from(primitive.as_str()));
+
+            self.idx += 1;
+            return ty;
         }
 
-        // TODO: Add array types as well
+        assert!(matches!(self.current(), Token::LSquare(_span)), "Add array types");
 
         // '*' is only allowed to prefix a type name, not suffix
         loop {

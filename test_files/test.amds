@@ -1,3 +1,9 @@
+decl Vec2 : struct {
+	x: f32,
+	y: f32,
+	z: f32,
+}
+
 decl some_proc : (param: u16) -> f32
 {
 	let ret: f32 = param as f32;

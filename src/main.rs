@@ -1,4 +1,5 @@
 mod ast;
+mod codegen;
 mod parser;
 mod token;
 mod tokenizer;
@@ -31,6 +32,9 @@ fn main() {
     println!("    structs:");
     for struct_decl in main_module.structs {
         println!("    |-->{}", struct_decl.name);
+        for member in struct_decl.data_members {
+            println!("        |-->{}: {}", member.name, match &member.parsed_type { ast::ParsedType::Name(_vec, name) => name, _ => panic!() });
+        }
     }
     println!("    enums:");
     for struct_decl in main_module.enums {

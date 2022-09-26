@@ -43,6 +43,27 @@ pub enum PrimitiveType {
     F64
 }
 
+impl PrimitiveType {
+    pub fn as_str(&self) -> &str {
+        match &self {
+            PrimitiveType::Nothing => "nothing",
+            PrimitiveType::Bool => "bool",
+            PrimitiveType::Char => "char",
+            PrimitiveType::String => "string",
+            PrimitiveType::U8 => "u8",
+            PrimitiveType::I8 => "i8",
+            PrimitiveType::U16 => "u16",
+            PrimitiveType::I16 => "i16",
+            PrimitiveType::U32 => "u32",
+            PrimitiveType::I32 => "i32",
+            PrimitiveType::U64 => "u64",
+            PrimitiveType::I64 => "i64",
+            PrimitiveType::F32 => "f32",
+            PrimitiveType::F64 => "f64"
+        }
+    }
+}
+
 #[derive(PartialEq, Debug)]
 pub enum Token {
     EOL(Span), // End-of-line
