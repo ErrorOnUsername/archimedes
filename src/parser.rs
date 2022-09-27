@@ -389,6 +389,7 @@ impl Parser {
                 },
                 Token::RParen(_span) => {
                     assert!(!(found_name ^ passed_colon), "Syntax Error! No label on parameter name");
+                    println!("RPAREN");
                     if found_name && passed_colon {
                         params.push(ParsedVarDecl {
                             parsed_type: parsed_type.clone(),
@@ -401,6 +402,7 @@ impl Parser {
                 _ => {
                     assert!(found_name && passed_colon, "No label on parameter name, got {:?}", self.current());
                     default_value = self.parse_expression(false, true);
+                    continue;
                 }
             }
 
@@ -769,6 +771,9 @@ impl Parser {
             Token::LParen(_span) => RangeExprBound::Exclusive,
             _ => panic!("Syntax Error! Expected '[' or '(' to specify lower range inclusivity, but got: {:?}", self.current())
         };
+
+        self.idx += 1;
+
         let start = self.parse_expression(false, true);
 
         match self.current() {

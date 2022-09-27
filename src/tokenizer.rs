@@ -28,7 +28,7 @@ fn is_valid_identifier_char(c: u8) -> bool {
 
 fn is_valid_number_literal_char(c: u8) -> bool {
     (c >= b'0' && c <= b'9') || (c >= b'a' && c <= b'f')
-                             || (c >= b'A' && c >= b'F')
+                             || (c >= b'A' && c <= b'F')
                              || (c == NUMBER_LITERAL_SEPERATOR)
                              || (c == b'.')
 }
@@ -554,6 +554,10 @@ impl Tokenizer {
             }
 
             if self.byte_at(self.cursor) == b'.' {
+                if !self.is_eof(self.cursor + 1) && self.byte_at(self.cursor + 1) == b'.' {
+                    break;
+                }
+
                 is_float = true;
                 if float_fmt == FloatingPointLiteralFormat::ENotation {
                     panic!("Invalid Syntax! Floating point not allowed after E in e-notation!");
@@ -562,7 +566,7 @@ impl Tokenizer {
                 is_float = true;
                 float_fmt = FloatingPointLiteralFormat::ENotation;
             }
-
+ 
             num_str.push(self.byte_at(self.cursor) as char);
 
             self.cursor += 1;
