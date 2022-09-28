@@ -1,9 +1,13 @@
+#[allow(non_snake_case)]
+
 use std::collections::HashMap;
-use token::Token;
-use tokenizer::Tokenizer;
-use parser::Parser;
-use crate::ast::{BinaryOperator, ParsedModule, ParsedProcDecl, ParsedStatement, ParsedType};
-use crate::codegen::AIL::Instruction::{GETMEM, PUSH8};
+use std::ops::Deref;
+use crate::token::Token;
+use crate::tokenizer::Tokenizer;
+use crate::parser::Parser;
+use crate::ast::{BinaryOperator, ParsedExpression, ParsedModule, ParsedProcDecl, ParsedStatement, ParsedType, UnaryOperator};
+use crate::codegen::AIL::Instruction::{GETMEM, PUSH32, PUSH8, PUSHS, READ};
+use crate::token::{FloatingPointLiteralFormat, IntegerLiteralFormat, NumericConstant};
 
 fn CreateIL(ast: ParsedModule)
 {
@@ -85,6 +89,139 @@ fn CreateIL(ast: ParsedModule)
         }
 
     }
+}
+
+fn InstructionsFromExpression(expr: ParsedExpression, varmap: HashMap<String,(u64, ParsedType)>) -> Vec<Instruction>
+{
+    let mut ret = Vec::new();
+    match expr {
+        ParsedExpression::Bool(val) => {
+            ret.push(PUSH8(val.into(), false));
+        }
+        ParsedExpression::NumericConstant(val) => {
+            match val {
+                NumericConstant::Integer(val, format) => {
+                    match format {
+                        IntegerLiteralFormat::Binary => {
+                            let result = i32::from_str_radix(&*val, 2);
+                            ret.push(PUSH32(result.expect("error parsing int") as u32, true));
+                        }
+                        IntegerLiteralFormat::Octal => {
+                            let result = i32::from_str_radix(&*val, 8);
+                            ret.push(PUSH32(result.expect("error parsing int") as u32, true));
+                        }
+                        IntegerLiteralFormat::Decimal => {
+                            let result = i32::from_str_radix(&*val, 10);
+                            ret.push(PUSH32(result.expect("error parsing int") as u32, true));
+                        }
+                        IntegerLiteralFormat::Hexadecimal => {
+                            let result = i32::from_str_radix(&*val, 16);
+                            ret.push(PUSH32(result.expect("error parsing int") as u32, true));
+                        }
+                    }
+                }
+                NumericConstant::FloatingPoint(val, format) => {
+                    match format {
+                        FloatingPointLiteralFormat::Standard => {
+                            let num = str::parse::<f32>(&*val).unwrap();
+                            ret.push(PUSHS(num));
+                        }
+                        FloatingPointLiteralFormat::ENotation => {panic!("e notation floats not supported");}
+                    }
+                }
+            }
+        }
+        ParsedExpression::StringLiteral(_) => {panic!("string literal not implemented");}
+        ParsedExpression::CharLiteral(val) => {
+            ret.push(PUSH8(val, false));
+        }
+        ParsedExpression::Var(val) => {
+            if varmap.contains_key(&*val) {
+                let var = varmap.get(&*val).unwrap();
+
+                match (var.clone()).1 {
+                    ParsedType::Name(path, val) => {
+                        match val.as_str() {
+                            "u8"  => {
+                                ret.push(READ((*var).0, 0))
+                            }
+                            "u16" => {
+                                ret.push(READ((*var).0, 1))
+                            }
+                            "u32" => {
+                                ret.push(READ((*var).0, 2))
+                            }
+                            "u64" => {
+                                ret.push(READ((*var).0, 3))
+                            }
+                            "i8"  => {
+                                ret.push(READ((*var).0, 4))
+                            }
+                            "i16" => {
+                                ret.push(READ((*var).0, 5))
+                            }
+                            "i32" => {
+                                ret.push(READ((*var).0, 6))
+                            }
+                            "i64" => {
+                                ret.push(READ((*var).0, 7))
+                            }
+                            "f32" => {
+                                ret.push(READ((*var).0, 8))
+                            }
+                            "f64" => {
+                                ret.push(READ((*var).0, 9))
+                            }
+                            _ => {panic!("unknown type")}
+                        }
+                    }
+                    ParsedType::Array(_, _) => {panic!("no array type");}
+                }
+
+
+            }
+
+        }
+        ParsedExpression::NamespacedVar(_, _) => {panic!("namespacing not implemented")}
+        ParsedExpression::Range(_, _, _, _) => {panic!("range not implemented")}
+        ParsedExpression::Match(_, _) => {panic!("match not implemented")}
+        ParsedExpression::Operator(op) => {
+            panic!("im honestly not sure how an expression evals to just an operator");
+        }
+        ParsedExpression::UnaryOperation(expr, op) => {
+            match expr.deref() {
+                ParsedExpression::Bool(val) => {
+                    match op {
+                        UnaryOperator::PreIncrement => {}
+                        UnaryOperator::PostIncrement => {}
+                        UnaryOperator::PreDecrement => {}
+                        UnaryOperator::PostDecrement => {}
+                        UnaryOperator::LogicalNot => {}
+                        UnaryOperator::BitwiseNot => {}
+                        UnaryOperator::AddressOf => {}
+                        UnaryOperator::Dereference => {}
+                        UnaryOperator::TypeCast(_) => {}
+                    }
+                }
+                ParsedExpression::NumericConstant(_) => {}
+                ParsedExpression::StringLiteral(_) => {}
+                ParsedExpression::CharLiteral(_) => {}
+                ParsedExpression::Var(_) => {}
+                ParsedExpression::NamespacedVar(_, _) => {}
+                ParsedExpression::Range(_, _, _, _) => {}
+                ParsedExpression::Match(_, _) => {}
+                ParsedExpression::Operator(_) => {}
+                ParsedExpression::UnaryOperation(_, _) => {}
+                ParsedExpression::BinaryOperation(_, _, _) => {}
+                ParsedExpression::ProcCall(_) => {}
+                ParsedExpression::Invalid => {}
+            }
+        }
+        ParsedExpression::BinaryOperation(_, _, _) => {}
+        ParsedExpression::ProcCall(_) => {}
+        ParsedExpression::Invalid => {}
+    }
+    return ret;
 }
 
 enum Instruction
@@ -191,37 +328,37 @@ fn GetInstructionBytes(instruction: Instruction) -> Vec<u8>
         }
         Instruction::POP => {
             buffer.push(7);
-            for x in 0.11 {
+            for x in 0..11 {
                 buffer.push(0);
             }
         }
         Instruction::ADD => {
             buffer.push(8);
-            for x in 0.11 {
+            for x in 0..11 {
                 buffer.push(0);
             }
         }
         Instruction::SUB => {
             buffer.push(9);
-            for x in 0.11 {
+            for x in 0..11 {
                 buffer.push(0);
             }
         }
         Instruction::MUL => {
             buffer.push(0xa);
-            for x in 0.11 {
+            for x in 0..11 {
                 buffer.push(0);
             }
         }
         Instruction::DIV => {
             buffer.push(0xb);
-            for x in 0.11 {
+            for x in 0..11 {
                 buffer.push(0);
             }
         }
         Instruction::MOD => {
             buffer.push(0xc);
-            for x in 0.11 {
+            for x in 0..11 {
                 buffer.push(0);
             }
         }
