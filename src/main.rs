@@ -3,9 +3,11 @@ mod codegen;
 mod parser;
 mod token;
 mod tokenizer;
+mod typechecker;
 
 use token::Token;
 use tokenizer::Tokenizer;
+use typechecker::Typechecker;
 use parser::Parser;
 
 fn main() {
@@ -22,7 +24,8 @@ fn main() {
 
     let mut parser = Parser {
         token_stream,
-        idx: 0
+        idx: 0,
+        typechecker: Typechecker::new()
     };
 
     let main_module = parser.parse_module();

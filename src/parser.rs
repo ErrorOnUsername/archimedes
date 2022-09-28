@@ -1,9 +1,15 @@
 use crate::ast::*;
 use crate::token::Token;
+use crate::typechecker::{
+    TypeID,
+    Typechecker
+};
 
 pub struct Parser {
     pub token_stream: Vec<Token>,
     pub idx: usize,
+
+    pub typechecker: Typechecker
 }
 
 impl Parser {

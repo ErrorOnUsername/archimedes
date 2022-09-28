@@ -14,6 +14,22 @@ pub enum ParsedType {
     Array(Box<ParsedType>, ParsedExpression),
 }
 
+impl PartialEq for ParsedType {
+    fn eq(&self, other: &Self) -> bool {
+        match other {
+            ParsedType::Name(module_path, name) => {
+                if let ParsedType::Name(other_module_path, other_name) = other {
+                    return (module_path == other_module_path) && (name == other_name);
+                }
+                todo!("Implement arrays");
+            },
+            ParsedType::Array(_elem_type, _size) => {
+                todo!("Implement arrays");
+            }
+        }
+    }
+}
+
 /// An operator that only has one operand.
 #[derive(Debug, Clone)]
 pub enum UnaryOperator {
