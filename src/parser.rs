@@ -1,9 +1,15 @@
 use crate::ast::*;
 use crate::token::Token;
+use crate::typechecker::{
+    TypeID,
+    Typechecker
+};
 
 pub struct Parser {
     pub token_stream: Vec<Token>,
     pub idx: usize,
+
+    pub typechecker: Typechecker
 }
 
 impl Parser {
@@ -389,7 +395,6 @@ impl Parser {
                 },
                 Token::RParen(_span) => {
                     assert!(!(found_name ^ passed_colon), "Syntax Error! No label on parameter name");
-                    println!("RPAREN");
                     if found_name && passed_colon {
                         params.push(ParsedVarDecl {
                             parsed_type: parsed_type.clone(),
