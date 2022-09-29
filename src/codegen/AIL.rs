@@ -785,11 +785,22 @@ enum Instruction
     TOD(),
     CALL(u8, u64),
     RET,
-    GETMEM(u64),
-    WRITE(u64),
-    READ(u64, u8),
+    MALLOC(u64), //size in bytes
+    WRITE(u64, u64), //addr, offset
+    READ(u64, u64 ,u8), //addr, offset, size <= 8
     FREEMEM(u64),
-    CLONE
+    CLONE,
+    SWRITE(u64), //uses address on stack, arg is offset
+    MEMCPY(u64, u64, u64, u64, u64), // addr, offset, addr, offset, size
+    EQ,  //comparison ops
+    GT,
+    LT,
+    GE,
+    LE,
+    NE,
+    JIT(u64), //jump if true
+    JMP(u64), //uncond jump
+    RJP(i64), //relative uncond jmp
 }
 
 fn GetInstructionBytes(instruction: Instruction) -> Vec<u8>
