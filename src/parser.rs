@@ -181,7 +181,7 @@ impl Parser {
                                         struct_decl.data_members.push(ParsedVarDecl {
                                                                           parsed_type: member_type.unwrap(),
                                                                           name: member_name.unwrap(),
-                                                                          defualt_value: ParsedExpression::Invalid
+                                                                          default_value: ParsedExpression::Invalid
                                                                       });
 
                                         member_name = None;
@@ -326,7 +326,7 @@ impl Parser {
                     params.push(ParsedVarDecl {
                         parsed_type: parsed_type.clone(),
                         name: name.clone(),
-                        defualt_value: ParsedExpression::Invalid
+                        default_value: ParsedExpression::Invalid
                     });
 
                     found_name = false;
@@ -339,7 +339,7 @@ impl Parser {
                         params.push(ParsedVarDecl {
                             parsed_type: parsed_type.clone(),
                             name: name.clone(),
-                            defualt_value: ParsedExpression::Invalid
+                            default_value: ParsedExpression::Invalid
                         });
                     }
 
@@ -387,7 +387,7 @@ impl Parser {
                     params.push(ParsedVarDecl {
                         parsed_type: parsed_type.clone(),
                         name: name.clone(),
-                        defualt_value: default_value.clone()
+                        default_value: default_value.clone()
                     });
 
                     found_name = false;
@@ -399,7 +399,7 @@ impl Parser {
                         params.push(ParsedVarDecl {
                             parsed_type: parsed_type.clone(),
                             name: name.clone(),
-                            defualt_value: default_value.clone()
+                            default_value: default_value.clone()
                         });
                     }
                     is_at_list_end = true;
@@ -455,7 +455,7 @@ impl Parser {
                 let mut var_decl: ParsedVarDecl = ParsedVarDecl {
                     parsed_type: ParsedType::Name(Vec::new(), String::from("")),
                     name: String::new(),
-                    defualt_value: ParsedExpression::Invalid
+                    default_value: ParsedExpression::Invalid
                 };
 
                 match self.current() {
@@ -486,7 +486,7 @@ impl Parser {
                 }
 
                 let default_value = self.parse_expression(false, true);
-                var_decl.defualt_value = default_value;
+                var_decl.default_value = default_value;
 
                 assert!(matches!(self.current(), Token::Semicolon(_span)), "Syntax Error! Expected ';' at end of variable declaration, got {:?}", self.current());
                 self.idx += 1;
@@ -510,7 +510,7 @@ impl Parser {
                 let mut it_decl: ParsedVarDecl = ParsedVarDecl {
                     parsed_type: ParsedType::Name(Vec::new(), String::from("")),
                     name: String::new(),
-                    defualt_value: ParsedExpression::Invalid
+                    default_value: ParsedExpression::Invalid
                 };
 
                 match self.current() {

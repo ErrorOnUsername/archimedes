@@ -12,7 +12,7 @@ use crate::ast::{BinaryOperator, ParsedExpression, ParsedModule, ParsedProcDecl,
 use crate::codegen::AIL::Instruction::*;
 use crate::token::{FloatingPointLiteralFormat, IntegerLiteralFormat, NumericConstant};
 
-fn CreateIL(ast: ParsedModule)
+pub fn CreateIL(ast: ParsedModule)
 {
     let mut buffer:Vec<u8> = Vec::new();
 
@@ -58,8 +58,8 @@ fn CreateIL(ast: ParsedModule)
                                         "i64" => {buffer.append(&mut GetInstructionBytes(PUSH8(8, false)))}
                                         "f32" => {buffer.append(&mut GetInstructionBytes(PUSH8(4, false)))}
                                         "f64" => {buffer.append(&mut GetInstructionBytes(PUSH8(8, false)))}
-
-                                        _ => {panic!("invalid type! {:?}", typ)}
+                                        "" => {buffer.append(&mut GetInstructionBytes(PUSH8(4, false)))}
+                                        _ => {panic!("invalid type! {}", typ)}
                                     }
                                     buffer.append(&mut GetInstructionBytes(GETMEM(vars)))
                                 }

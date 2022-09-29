@@ -113,7 +113,7 @@ impl BinaryOperator {
 pub struct ParsedVarDecl {
     pub parsed_type: ParsedType,
     pub name: String,
-    pub defualt_value: ParsedExpression,
+    pub default_value: ParsedExpression,
 }
 
 /// A declaration of a procedure, otherwise known as a

@@ -7,6 +7,7 @@ mod token;
 mod tokenizer;
 mod typechecker;
 
+use std::borrow::Borrow;
 use token::Token;
 use tokenizer::Tokenizer;
 use typechecker::Typechecker;
@@ -35,18 +36,23 @@ fn main() {
     println!("main_module:");
     println!("    name: {}", main_module.name);
     println!("    structs:");
-    for struct_decl in main_module.structs {
+    for struct_decl in main_module.structs.clone() {
         println!("    |-->{}", struct_decl.name);
         for member in struct_decl.data_members {
             println!("        |-->{}: {}", member.name, match &member.parsed_type { ast::ParsedType::Name(_vec, name) => name, _ => panic!() });
         }
     }
     println!("    enums:");
-    for struct_decl in main_module.enums {
+    for struct_decl in main_module.enums.clone() {
         println!("    |-->{}", struct_decl.name);
     }
     println!("    procs:");
-    for struct_decl in main_module.procs {
+    for struct_decl in main_module.procs.clone() {
         println!("    |-->{}", struct_decl.name);
     }
+
+    println!("\n\nAttempting to generate IL, this will probably panic");
+    codegen::AIL::CreateIL(main_module);
+    println!("Done!");
+
 }
