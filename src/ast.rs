@@ -1,4 +1,5 @@
 use crate::token::NumericConstant;
+use crate::typechecker::TypeID;
 
 #[derive(Clone)]
 pub enum ComplexType {
@@ -10,13 +11,20 @@ pub enum ComplexType {
 
 #[derive(Debug, Clone)]
 pub enum ParsedType {
+    CheckedType(TypeID),
     Name(Vec<String>, String),
     Array(Box<ParsedType>, ParsedExpression),
 }
 
 impl PartialEq for ParsedType {
     fn eq(&self, other: &Self) -> bool {
-        match other {
+        match &self {
+            ParsedType::CheckedType(id) => {
+                if let ParsedType::CheckedType(o_id) = other {
+                    return id == o_id
+                }
+                panic!("Can only check quality of checked types against unchecked types");
+            },
             ParsedType::Name(module_path, name) => {
                 if let ParsedType::Name(other_module_path, other_name) = other {
                     return (module_path == other_module_path) && (name == other_name);

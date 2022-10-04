@@ -25,8 +25,9 @@ fn main() {
     let mut parser = Parser {
         token_stream,
         idx: 0,
-        typechecker: Typechecker::new()
     };
+    // let mut typechecker = Typechecker::new();
+    // typechecker.preregister_primitives();
 
     let main_module = parser.parse_module();
 
