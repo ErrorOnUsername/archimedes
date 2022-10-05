@@ -26,10 +26,10 @@ fn main() {
         token_stream,
         idx: 0,
     };
-    // let mut typechecker = Typechecker::new();
-    // typechecker.preregister_primitives();
 
     let main_module = parser.parse_module();
+
+    codegen::init();
 
     println!("main_module:");
     println!("    name: {}", main_module.name);

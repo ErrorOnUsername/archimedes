@@ -1,13 +1,17 @@
 > Thanks for checking out Archimedes! I'm really doing this to learn more about compilers, so I'm not looking for PRs right now. I would definitely would appreciate opening issues if you run into any bugs while you're checking out the language though!
 
 # Archimedes
-Archimedes is a systems programming language that I'm making as a hobby project to learn Rust as well as how compilers work.
+Archimedes is a systems programming language that Mason and I are making as a hobby project to better understand Rust as well as how compilers work.
 
 ## To-Do:
-- [ ] Get elementary parser running
-- [ ] LLVM IR code-gen / custom bytecode
+- [X] Tokenizer
+- [X] Get elementary parser running
+- [ ] LLVM IR code-gen / custom bytecode [WIP]
 - [ ] Make a binary
+- [ ] Typechecking
+- [ ] Module importing
 - [ ] Start the standard library
+- [ ] Metaprogramming (using custom bytecode VM)
 
 ## Why make a new language?
 Why not?
