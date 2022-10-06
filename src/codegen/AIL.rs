@@ -234,14 +234,14 @@ fn GetInstructionBytes(instruction: Instruction) -> Vec<u8>
                 buffer.push(0);
             }
         }
-        Instruction::GETMEM(id) => {
+        /*Instruction::GETMEM(id) => {
             buffer.push(0x15);
             buffer.push(0);
             buffer.push(0);
             buffer.push(0);
             buffer.append(&mut id.to_be_bytes().to_vec());
         }
-        /*Instruction::WRITE(id) => {
+        Instruction::WRITE(id) => {
             buffer.push(0x16);
             buffer.push(0);
             buffer.push(0);
@@ -270,6 +270,7 @@ fn GetInstructionBytes(instruction: Instruction) -> Vec<u8>
                 buffer.push(0);
             }
         }
+        _ => {}
     }
     return buffer;
 }
